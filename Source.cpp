@@ -32,10 +32,10 @@ int main()
 
 	//hardcoded filenames when I'm feeling lazy
 	//std::string source_file = "cs_170_small80.txt";
-	//std::string source_file = "cs_170_large80.txt";
+	std::string source_file = "cs_170_large80.txt";
 
 	//std::string source_file = "cs_170_small39.txt";
-	std::string source_file = "cs_170_large39.txt"; // 798/95.5% forward, 
+	//std::string source_file = "cs_170_large39.txt"; // 798/95.5% forward, 
 
 	inFile.open(source_file);
 	if (!inFile)
@@ -210,7 +210,6 @@ float forward_selection(Problem* prob)
 	int best_feature = 0;
 	float running_accuracy = 0;
 	float current_accuracy = 0;
-//	float tier_accuracy = 0;
 
 	//add each possible node
 	for (int all_features = 0; all_features < prob->col; all_features++)
@@ -368,7 +367,6 @@ float backward_elimination(Problem* prob, std::vector<int> features_list)
 		if (running_accuracy > current_accuracy)
 		{
 			//find the position of the worst feature and remove it
-			std::vector<int>::iterator find_delete_pos;
 			features_list.erase(std::find(features_list.begin(), features_list.end(), worst_feature));
 
 			//store the accuracy to ensure we don't get worse later
@@ -381,7 +379,6 @@ float backward_elimination(Problem* prob, std::vector<int> features_list)
 		else //if no sets are more accurate, remove the worst and continue
 		{
 			//find the position of the worst feature and remove it
-			std::vector<int>::iterator find_delete_pos;
 			features_list.erase(std::find(features_list.begin(), features_list.end(), worst_feature));
 
 		}
