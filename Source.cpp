@@ -4,13 +4,16 @@
 #include <iomanip>
 #include <fstream>
 #include <chrono>
+#include <deque>
+
 
 float forward_selection(Problem* prob);
 float nearest_neighbor_leave_one_out(Problem* prob, std::vector<int> features_list);
 void normalize_data(Problem* prob);
 void print_data(Problem* prob);
-float backward_elimination(Problem* prob, std::vector<int> features_list);
+float backward_elimination(Problem* prob, std::deque<int> features_list);
 void print_feature_set(std::vector<int> printme);
+void print_feature_set(std::deque<int>printme);
 
 int main()
 {
@@ -32,10 +35,10 @@ int main()
 
 	//hardcoded filenames when I'm feeling lazy
 	//std::string source_file = "cs_170_small80.txt";
-	std::string source_file = "cs_170_large80.txt";
+	std::string source_file = "cs_170_large80.txt";  //786 seconds
 
 	//std::string source_file = "cs_170_small39.txt";
-	//std::string source_file = "cs_170_large39.txt"; // 798/95.5% forward, 
+	//std::string source_file = "cs_170_large39.txt"; // 798 seconds / 95.5% forward, 
 
 	inFile.open(source_file);
 	if (!inFile)
@@ -91,9 +94,11 @@ int main()
 
 		//create a vector for all columns leave-one-out-nn and fill it (with values for all columns)
 		std::vector<int> all_columns;
+		std::deque<int> columns_list;
 		for (int i = 1; i < problem->col; i++) //skip 0, the classification column
 		{
 			all_columns.push_back(i);
+			columns_list.push_back(i);
 		}
 
 		std::cout << "Commencing 'leave-one-out' Nearest neighbor with all " << problem->col << " features!\n ";
@@ -114,7 +119,7 @@ int main()
 		}
 		else
 		{
-			accuracy_rating = backward_elimination(problem, all_columns);
+			accuracy_rating = backward_elimination(problem, columns_list);
 		}
 		//continuing to use auto since I don't know much about std::chrono (yet)
 		auto stop_time = std::chrono::high_resolution_clock::now();
@@ -186,6 +191,59 @@ float nearest_neighbor_leave_one_out(Problem* prob, std::vector<int> features_li
 	return accuracy_count;
 }
 
+
+float nearest_neighbor_leave_one_out(Problem* prob, std::deque<int> features_list) //overloaded to take a queue features list
+{
+	float accuracy_count = 0;
+	float* leave_out;
+
+	//for every row
+	for (int every_row = 0; every_row < prob->row; every_row++)
+	{
+		float min_distance = INFINITY; //distance to the closest neighbor
+		int min_instance = -1;//index of the closest neighbor
+		leave_out = prob->data[every_row];
+
+		//look through all the rows
+		for (int rows = 0; rows < prob->row; rows++)
+		{
+			//skip the left out row to leave it out
+			if (prob->data[rows] == leave_out)
+			{
+				continue;
+			}
+			float cur_distance = 0; //distance to the neighbor we're examining
+
+
+			//look at all the columns in this row
+			for (std::deque<int>::iterator columns = features_list.begin(); columns != features_list.end(); columns++)
+			{
+				//find the distance and add it to the total distance
+				cur_distance += pow((prob->data[every_row][*columns] - prob->data[rows][*columns]), 2);
+				//				cur_distance += pow(leave_out[*columns] - prob->data[rows][*columns], 2);
+			}
+			cur_distance = sqrt(cur_distance); //finishing the euclidian distance formula
+
+			if (cur_distance < min_distance)
+			{
+				min_distance = cur_distance;
+				min_instance = rows;
+			}
+
+		}
+		//if our actual classification == our guessed classification (nearest neighbors class)
+		if (leave_out[0] == prob->data[min_instance][0])
+		{
+			accuracy_count += 1;
+			//std::cout << "Success: ";
+		}
+		//std::cout << prob->data[every_row][0] << " " << prob->data[min_instance][0] << std::endl;
+	}
+	accuracy_count = accuracy_count / (prob->row);
+	return accuracy_count;
+}
+
+
 void print_feature_set(std::vector<int> printme)
 {
 	std::cout <<  "{";
@@ -199,6 +257,21 @@ void print_feature_set(std::vector<int> printme)
 	}
 	std::cout << "}";
 }
+
+void print_feature_set(std::deque<int> printme)
+{
+	std::cout << "{";
+	for (auto i = printme.begin(); i != printme.end(); i++)
+	{
+		if (i != printme.begin())
+		{
+			std::cout << ", ";
+		}
+		std::cout << *i;
+	}
+	std::cout << "}";
+}
+
 
 float forward_selection(Problem* prob)
 {
@@ -318,7 +391,7 @@ float forward_selection(Problem* prob)
 		return 0;
 }
 
-float backward_elimination(Problem* prob, std::vector<int> features_list)
+float backward_elimination(Problem* prob, std::deque<int> features_list)
 {
 	//std::vector<int> features_list;
 
@@ -332,20 +405,22 @@ float backward_elimination(Problem* prob, std::vector<int> features_list)
 	//remove one feature at a time from the set until it's empty
 	for (int all_features = 1; all_features < prob->col; all_features++)
 	{
+		int last_feature = features_list.back();
 		float tier_accuracy = 0;
 		//remove each feature, one at a time to find the worst one remaining
 		for (int remove_feature = 1; remove_feature < prob->col; remove_feature++)
 		{
 			//save the feature we're about to delete so we can add it back later
-			current_feature = features_list.back();
+			current_feature = features_list.front();
 			//remove the feature at the end of the vector
-			features_list.pop_back();
+			features_list.pop_front();
 			
 			//calculate accuracy with one less element
 			float tmp_accuracy = nearest_neighbor_leave_one_out(prob, features_list);
 
 			//return it to the beginning!
-			features_list.emplace(features_list.begin(), current_feature);
+			features_list.push_back(current_feature);
+//			features_list.emplace(features_list.begin(), current_feature);
 
 			if (tmp_accuracy > running_accuracy)
 			{
@@ -362,24 +437,56 @@ float backward_elimination(Problem* prob, std::vector<int> features_list)
 				}
 			}
 
+
+			if (current_feature == last_feature && remove_feature != 1)
+			{
+				break;
+			}
+
 		}
 		//check error rate of the best added feature against previous best rate
 		if (running_accuracy > current_accuracy)
 		{
 			//find the position of the worst feature and remove it
-			features_list.erase(std::find(features_list.begin(), features_list.end(), worst_feature));
+			//swap it to the back and erase it 
+			std::deque<int>::iterator it = std::find(features_list.begin(), features_list.end(), worst_feature);
+			if (it != features_list.end())
+			{
+				int tmp = features_list.back();
+				features_list.back() = *it;
+				*it = tmp;
+
+				features_list.pop_back();
+
+			}
+			else continue;
+
+			//features_list.erase(std::find(features_list.begin(), features_list.end(), worst_feature));
 
 			//store the accuracy to ensure we don't get worse later
 			current_accuracy = running_accuracy;
 
 			//clear the old features list
 			prob->final_features_list->clear();
-			*prob->final_features_list = features_list;
+			for (int i = 0; i < features_list.size(); i++)
+			{
+				prob->final_features_list->push_back(features_list[i]);
+			}
 		}
 		else //if no sets are more accurate, remove the worst and continue
 		{
 			//find the position of the worst feature and remove it
-			features_list.erase(std::find(features_list.begin(), features_list.end(), worst_feature));
+			//features_list.erase(std::find(features_list.begin(), features_list.end(), worst_feature));
+			std::deque<int>::iterator it = std::find(features_list.begin(), features_list.end(), worst_feature);
+			if (it != features_list.end())
+			{
+				int tmp = features_list.back();
+				features_list.back() = *it;
+				*it = tmp;
+				features_list.pop_back();
+
+			}
+			else continue;
 
 		}
 		std::cout << "Removed " << worst_feature << " to yield accuracy " << tier_accuracy << std::endl;
