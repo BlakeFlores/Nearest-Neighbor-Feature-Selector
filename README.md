@@ -6,7 +6,7 @@ This does have the drawback of being a supervised selector, labeled training dat
 
 # Dependancies
 
-This is written in C++, and uses the standard libraries. 
+This is written in C++ 17, and uses the standard libraries. 
 
 It is however dependant on a correctly formatted input file. 
 
