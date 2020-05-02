@@ -21,24 +21,17 @@ int main()
 
 	std::cout << std::setprecision(3);
 
-	/*
+	
 	std::string source_file;
 	std::cout << "Type the name of the file to be tested: ";
 	std::cin >> source_file;
-	*/
+	
 	int user_choice;
 	std::cout << "\nType the number of the algorithm you want to run:\n ";
 	std::cout << "\t1.Forward Selection \n\t2.Backwards Elimination \n"; // \t3.Blake's Special Algorithm\n";
 	std::cout << "\t note: Default algoritm is backwards elimination\n";
 	std::cin >> user_choice;
 
-
-	//hardcoded filenames when I'm feeling lazy
-	//std::string source_file = "cs_170_small80.txt";
-	std::string source_file = "cs_170_large80.txt";  //786 seconds
-
-	//std::string source_file = "cs_170_small39.txt";
-	//std::string source_file = "cs_170_large39.txt"; // 798 seconds / 95.5% forward, 
 
 	inFile.open(source_file);
 	if (!inFile)
@@ -52,10 +45,6 @@ int main()
 		int rows = 0;
 		std::string count_rows_colns;
 
-		/*
-		(partial) credit for counting rows/columns goes to
-		https://stackoverflow.com/questions/43768877/how-to-know-its-the-end-of-the-line-in-c-reading-file
-		*/
 		while (inFile >> count_rows_colns)
 		{
 			char c = inFile.get();
@@ -106,10 +95,6 @@ int main()
 		std::cout << "Done! With " << accuracy_rating << " accuracy rate!\n\n";
 
 
-		//start recording time for the algorithm, since we don't care about anything else
-		//time code from
-		//https://www.geeksforgeeks.org/measure-execution-time-function-cpp/
-
 		auto start_time = std::chrono::high_resolution_clock::now();
 
 		if (user_choice == 1)
@@ -125,12 +110,6 @@ int main()
 		auto stop_time = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop_time - start_time);
 
-
-		//hardcoded test for small dataset
-		//all_columns.push_back(3);
-		//all_columns.push_back(5);
-		//all_columns.push_back(7);
-		//std::cout << "Test " << nearest_neighbor_leave_one_out(problem, all_columns) << std::endl;
 
 		std::cout << "Finished with accuracy rating: " << accuracy_rating << std::endl;
 		std::cout << "Final set: ";
@@ -168,7 +147,6 @@ float nearest_neighbor_leave_one_out(Problem* prob, std::vector<int> features_li
 			{
 				//find the distance and add it to the total distance
 				cur_distance += pow((prob->data[every_row][*columns] - prob->data[rows][*columns]), 2);
-//				cur_distance += pow(leave_out[*columns] - prob->data[rows][*columns], 2);
 			}
 			cur_distance = sqrt(cur_distance); //finishing the euclidian distance formula
 
@@ -183,9 +161,7 @@ float nearest_neighbor_leave_one_out(Problem* prob, std::vector<int> features_li
 		if (leave_out[0] == prob->data[min_instance][0])
 		{
 			accuracy_count += 1;
-			 //std::cout << "Success: ";
 		}
-		//std::cout << prob->data[every_row][0] << " " << prob->data[min_instance][0] << std::endl;
 	}
 	accuracy_count = accuracy_count / (prob->row );
 	return accuracy_count;
@@ -220,7 +196,6 @@ float nearest_neighbor_leave_one_out(Problem* prob, std::deque<int> features_lis
 			{
 				//find the distance and add it to the total distance
 				cur_distance += pow((prob->data[every_row][*columns] - prob->data[rows][*columns]), 2);
-				//				cur_distance += pow(leave_out[*columns] - prob->data[rows][*columns], 2);
 			}
 			cur_distance = sqrt(cur_distance); //finishing the euclidian distance formula
 
@@ -235,9 +210,7 @@ float nearest_neighbor_leave_one_out(Problem* prob, std::deque<int> features_lis
 		if (leave_out[0] == prob->data[min_instance][0])
 		{
 			accuracy_count += 1;
-			//std::cout << "Success: ";
 		}
-		//std::cout << prob->data[every_row][0] << " " << prob->data[min_instance][0] << std::endl;
 	}
 	accuracy_count = accuracy_count / (prob->row);
 	return accuracy_count;
@@ -346,7 +319,6 @@ float forward_selection(Problem* prob)
 			else continue;
 			decrease_flag = false; //we're still getting better
 			//add the feature to the set (to continue to be grown or not)
-//			features_list.push_back(best_feature);
 
 			std::cout << "\nFeature set ";
 			print_feature_set(features_list);
@@ -374,14 +346,12 @@ float forward_selection(Problem* prob)
 					features_list.push_back(best_feature);
 				}
 
-//				features_list.push_back(best_feature);
 
 				decrease_flag = true;
 				current_accuracy = running_accuracy;
 			}
 			else
 			{
-//				std::cout << "Exiting search with set "; print_feature_set(*prob->final_features_list); std::cout << "\n";
 				return current_accuracy; //if our rate gets worse return the best error rate we have.
 			}
 		}
@@ -393,7 +363,6 @@ float forward_selection(Problem* prob)
 
 float backward_elimination(Problem* prob, std::deque<int> features_list)
 {
-	//std::vector<int> features_list;
 
 	std::cout << "Beginning backwards elimination search: \n";
 
@@ -420,7 +389,6 @@ float backward_elimination(Problem* prob, std::deque<int> features_list)
 
 			//return it to the beginning!
 			features_list.push_back(current_feature);
-//			features_list.emplace(features_list.begin(), current_feature);
 
 			if (tmp_accuracy > running_accuracy)
 			{
@@ -461,7 +429,6 @@ float backward_elimination(Problem* prob, std::deque<int> features_list)
 			}
 			else continue;
 
-			//features_list.erase(std::find(features_list.begin(), features_list.end(), worst_feature));
 
 			//store the accuracy to ensure we don't get worse later
 			current_accuracy = running_accuracy;
@@ -476,7 +443,6 @@ float backward_elimination(Problem* prob, std::deque<int> features_list)
 		else //if no sets are more accurate, remove the worst and continue
 		{
 			//find the position of the worst feature and remove it
-			//features_list.erase(std::find(features_list.begin(), features_list.end(), worst_feature));
 			std::deque<int>::iterator it = std::find(features_list.begin(), features_list.end(), worst_feature);
 			if (it != features_list.end())
 			{
@@ -508,7 +474,6 @@ void normalize_data(Problem* prob)
 		{
 			mean += prob->data[row][coln] / prob->row;
 		}
-//		std::cout << "mean: " << mean << std::endl;
 
 
 		//calculate the standard deviation of a given column
