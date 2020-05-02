@@ -1,4 +1,4 @@
-# nearest-neighbor
+# Nearest-Neighbor Feature Selector
 This program does a feature selection using Single Nearest Neighbor. It takes in an input file of numeric data which is formatted accordingly (see dependancies below). This program then noramlizes all of the data to a range of between -1 and 1. Finally, It uses a single nearest neighbor algorithm to determine which combination of features can best predict the classification of future data. The output of this program is the most optimal set of features for building a nearest neighbor classifier.
 
 
